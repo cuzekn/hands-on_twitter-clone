@@ -1,55 +1,45 @@
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+import Auth from "./components/Auth";
+import Feed from "./components/Feed";
+import { login, logout, selectUser } from "./features/userSlice";
+import { auth } from "./firebase";
+import "./App.module.css";
+import styles from "./App.module.css"
 
 const App: React.FC = () => {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <Counter />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
-    </div>
-  );
-}
+  const user = useSelector(selectUser);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const unSub = auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        dispatch(
+          login({
+            uid: authUser.uid,
+            photoUrl: authUser.photoURL,
+            dispatchName: authUser.displayName,
+          })
+        );
+      } else {
+        dispatch(logout());
+      }
+    });
+    return () => {
+      unSub();
+    };
+  }, [dispatch]);
+
+  return <>
+    {user.uid ? (
+      <div className={styles.app}>
+        <Feed />
+      </div>
+    ) : (
+      <Auth />
+    )}
+  </>;
+};
 
 export default App;
