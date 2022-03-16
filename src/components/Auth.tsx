@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -12,6 +12,9 @@ import Grid from "@material-ui/core/Grid";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
+import EmailICon from "@material-ui/icons/Email";
+
+import styles from "../components/Auth.module.css";
 import { auth, provider } from "../firebase";
 
 const useStyles = makeStyles((theme) => ({
@@ -50,6 +53,18 @@ const useStyles = makeStyles((theme) => ({
 
 const Auth: React.FC = () => {
   const classes = useStyles();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLogin, setIsLogin] = useState(true);
+
+  const signInEmail = async () => {
+    await auth.signInWithEmailAndPassword(email, password);
+  };
+
+  const signUpEmail = async () => {
+    await auth.createUserWithEmailAndPassword(email, password);
+  };
+
   const signInGoogle = async () => {
     await auth.signInWithPopup(provider).catch((err) => alert(err.message));
   };
@@ -64,7 +79,7 @@ const Auth: React.FC = () => {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign in
+            {isLogin ? "Login" : "Register"}
           </Typography>
           <form className={classes.form} noValidate>
             <TextField
@@ -77,6 +92,10 @@ const Auth: React.FC = () => {
               name="email"
               autoComplete="email"
               autoFocus
+              value={email}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setEmail(e.target.value);
+              }}
             />
             <TextField
               variant="outlined"
@@ -88,21 +107,56 @@ const Auth: React.FC = () => {
               type="password"
               id="password"
               autoComplete="current-password"
+              value={password}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setPassword(e.target.value);
+              }}
             />
             <FormControlLabel
               control={<Checkbox value="remember" color="primary" />}
               label="Remember me"
             />
             <Button
-              type="submit"
               fullWidth
               variant="contained"
               color="primary"
               className={classes.submit}
+              startIcon={<EmailICon />}
+              onClick={
+                isLogin
+                  ? async () => {
+                      try {
+                        await signInEmail();
+                      } catch (err: any) {
+                        alert(err.message);
+                      }
+                    }
+                  : async () => {
+                      try {
+                        await signUpEmail();
+                      } catch (err: any) {
+                        alert(err.message);
+                      }
+                    }
+              }
             >
-              Sign In
+              {isLogin ? "Login" : "Register"}
             </Button>
-            
+
+            <Grid container>
+              <Grid item xs>
+                <span className={styles.login_reset}>Forgot password?</span>
+              </Grid>
+              <Grid item xs>
+                <span
+                  className={styles.login_toggleMode}
+                  onClick={() => setIsLogin(!isLogin)}
+                >
+                  {isLogin ? "Create new account ?" : "Back to Login"}
+                </span>
+              </Grid>
+            </Grid>
+
             <Button
               fullWidth
               variant="contained"
